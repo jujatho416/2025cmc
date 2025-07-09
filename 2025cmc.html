@@ -1,0 +1,32 @@
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEServer.h>
+
+BLEServer *pServer;
+BLEService *pService;
+BLECharacteristic *pCharacteristic;
+
+void setup() {
+  Serial.begin(115200);
+  BLEDevice::init("ColorSync"); // Device name
+  pServer = BLEDevice::createServer();
+  pService = pServer->createService("1234"); // Custom service UUID
+  pCharacteristic = pService->createCharacteristic(
+    "ABCD",
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
+  );
+  pService->start();
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(pService->getUUID());
+  pAdvertising->start();
+  Serial.println("BLE Ready!");
+}
+
+void loop() {
+  pCharacteristic->setValue("RED"); // Send "RED" to phones
+  pCharacteristic->notify();
+  delay(1000);
+  pCharacteristic->setValue("BLUE"); // Change to blue after 1 sec
+  pCharacteristic->notify();
+  delay(1000);
+}
